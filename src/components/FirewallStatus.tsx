@@ -1,10 +1,20 @@
 
 import { useState, useEffect } from "react";
 import { getFirewallStatus, toggleFirewall } from "@/services/firewallService";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Shield, ShieldAlert, RefreshCw } from "lucide-react";
+import { 
+  Card, 
+  CardTitle, 
+  CardBody, 
+  CardFooter,
+  Switch,
+  Button,
+  Spinner,
+  Flex,
+  FlexItem,
+  Text,
+  TextVariants
+} from "@patternfly/react-core";
+import { ShieldIcon, ShieldAltIcon, SyncAltIcon } from "@patternfly/react-icons";
 
 export const FirewallStatus = () => {
   const [status, setStatus] = useState<boolean | null>(null);
@@ -41,60 +51,73 @@ export const FirewallStatus = () => {
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
+    <Card isFlat className="pf-v5-u-mb-md">
+      <CardTitle>
+        <Flex alignItems={{ default: 'alignItemsCenter' }}>
+          <FlexItem>
             {status ? (
-              <Shield className="h-5 w-5 text-green-500" />
+              <ShieldIcon color="var(--pf-v5-global--success-color--100)" />
             ) : (
-              <ShieldAlert className="h-5 w-5 text-red-500" />
+              <ShieldAltIcon color="var(--pf-v5-global--danger-color--100)" />
             )}
-            Firewall Status
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={fetchStatus}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-        </CardTitle>
-        <CardDescription>
+          </FlexItem>
+          <FlexItem>Firewall Status</FlexItem>
+          <FlexItem align={{ default: 'alignRight' }}>
+            <Button 
+              variant="plain" 
+              onClick={fetchStatus}
+              isDisabled={loading}
+              aria-label="Refresh status"
+            >
+              {loading ? <Spinner size="sm" /> : <SyncAltIcon />}
+            </Button>
+          </FlexItem>
+        </Flex>
+      </CardTitle>
+      <CardBody>
+        <Text component={TextVariants.p}>
           Control the Uncomplicated Firewall (UFW)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">
-              {status === null 
-                ? "Loading status..." 
-                : status 
-                  ? "Firewall is enabled" 
-                  : "Firewall is disabled"}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {status === null 
-                ? "Checking status..." 
-                : status 
-                  ? "Your system is protected" 
-                  : "Your system is vulnerable"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">
-              {status ? "On" : "Off"}
-            </span>
-            <Switch 
-              checked={!!status} 
-              onCheckedChange={handleToggle} 
-              disabled={loading || status === null}
-            />
-          </div>
-        </div>
-      </CardContent>
+        </Text>
+      </CardBody>
+      <CardFooter>
+        <Flex alignItems={{ default: 'alignItemsCenter' }} justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+          <FlexItem>
+            <div>
+              <Text component={TextVariants.h4}>
+                {status === null 
+                  ? "Loading status..." 
+                  : status 
+                    ? "Firewall is enabled" 
+                    : "Firewall is disabled"}
+              </Text>
+              <Text component={TextVariants.small} className="pf-v5-u-color-200">
+                {status === null 
+                  ? "Checking status..." 
+                  : status 
+                    ? "Your system is protected" 
+                    : "Your system is vulnerable"}
+              </Text>
+            </div>
+          </FlexItem>
+          <FlexItem>
+            <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+              <FlexItem>
+                <Text component={TextVariants.small} className="pf-v5-u-font-weight-bold">
+                  {status ? "On" : "Off"}
+                </Text>
+              </FlexItem>
+              <FlexItem>
+                <Switch 
+                  isChecked={!!status} 
+                  onChange={handleToggle} 
+                  isDisabled={loading || status === null}
+                  aria-label="Toggle firewall"
+                />
+              </FlexItem>
+            </Flex>
+          </FlexItem>
+        </Flex>
+      </CardFooter>
     </Card>
   );
 };

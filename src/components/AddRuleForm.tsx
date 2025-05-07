@@ -1,19 +1,26 @@
 
 import { useState } from "react";
 import { addFirewallRule, FirewallRule } from "@/services/firewallService";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle } from "lucide-react";
+import {
+  Button,
+  Form,
+  FormGroup,
+  TextInput,
+  Select,
+  SelectOption,
+  Modal,
+  ModalVariant,
+  ActionGroup,
+  InputGroup,
+  PlusCircleIcon
+} from "@patternfly/react-core";
 
 interface AddRuleFormProps {
   onRuleAdded: () => void;
 }
 
 export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
-  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Omit<FirewallRule, "id">>({
     action: "allow",
@@ -25,7 +32,12 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
     enabled: true,
   });
 
-  const handleChange = (field: keyof Omit<FirewallRule, "id">, value: string) => {
+  // Select states
+  const [isActionOpen, setIsActionOpen] = useState(false);
+  const [isDirectionOpen, setIsDirectionOpen] = useState(false);
+  const [isProtocolOpen, setIsProtocolOpen] = useState(false);
+
+  const handleChange = (field: keyof Omit<FirewallRule, "id">, value: any) => {
     setFormData((prev) => ({ 
       ...prev, 
       [field]: value 
@@ -38,7 +50,7 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
     
     try {
       await addFirewallRule(formData);
-      setOpen(false);
+      setIsModalOpen(false);
       onRuleAdded();
       // Reset form
       setFormData({
@@ -57,121 +69,135 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
     }
   };
 
+  const actionOptions = [
+    <SelectOption key="allow" value="allow">Allow</SelectOption>,
+    <SelectOption key="deny" value="deny">Deny</SelectOption>,
+    <SelectOption key="reject" value="reject">Reject</SelectOption>
+  ];
+
+  const directionOptions = [
+    <SelectOption key="in" value="in">Inbound</SelectOption>,
+    <SelectOption key="out" value="out">Outbound</SelectOption>
+  ];
+
+  const protocolOptions = [
+    <SelectOption key="any" value="any">Any</SelectOption>,
+    <SelectOption key="tcp" value="tcp">TCP</SelectOption>,
+    <SelectOption key="udp" value="udp">UDP</SelectOption>
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Add Rule
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add New Firewall Rule</DialogTitle>
-          <DialogDescription>
-            Create a new UFW firewall rule to control traffic
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="action">Action</Label>
-              <Select 
-                value={formData.action} 
-                onValueChange={(value: "allow" | "deny" | "reject") => handleChange("action", value)}
-              >
-                <SelectTrigger id="action">
-                  <SelectValue placeholder="Select action" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="allow">Allow</SelectItem>
-                    <SelectItem value="deny">Deny</SelectItem>
-                    <SelectItem value="reject">Reject</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+    <>
+      <Button icon={<PlusCircleIcon />} onClick={() => setIsModalOpen(true)}>
+        Add Rule
+      </Button>
+
+      <Modal
+        variant={ModalVariant.medium}
+        title="Add New Firewall Rule"
+        description="Create a new UFW firewall rule to control traffic"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        actions={[
+          <Button key="cancel" variant="secondary" onClick={() => setIsModalOpen(false)}>
+            Cancel
+          </Button>,
+          <Button key="add" variant="primary" onClick={handleSubmit} isLoading={loading}>
+            {loading ? "Adding..." : "Add Rule"}
+          </Button>
+        ]}
+      >
+        <Form>
+          <div className="pf-v5-u-display-flex pf-v5-u-flex-wrap">
+            <div className="pf-v5-u-w-50 pf-v5-u-pr-sm">
+              <FormGroup label="Action" fieldId="action">
+                <Select
+                  id="action"
+                  aria-label="Select action"
+                  selections={formData.action}
+                  isOpen={isActionOpen}
+                  onToggle={() => setIsActionOpen(!isActionOpen)}
+                  onSelect={(_, value) => {
+                    handleChange("action", value as "allow" | "deny" | "reject");
+                    setIsActionOpen(false);
+                  }}
+                >
+                  {actionOptions}
+                </Select>
+              </FormGroup>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="direction">Direction</Label>
-              <Select 
-                value={formData.direction} 
-                onValueChange={(value: "in" | "out") => handleChange("direction", value)}
-              >
-                <SelectTrigger id="direction">
-                  <SelectValue placeholder="Select direction" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="in">Inbound</SelectItem>
-                    <SelectItem value="out">Outbound</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className="pf-v5-u-w-50 pf-v5-u-pl-sm">
+              <FormGroup label="Direction" fieldId="direction">
+                <Select
+                  id="direction"
+                  aria-label="Select direction"
+                  selections={formData.direction}
+                  isOpen={isDirectionOpen}
+                  onToggle={() => setIsDirectionOpen(!isDirectionOpen)}
+                  onSelect={(_, value) => {
+                    handleChange("direction", value as "in" | "out");
+                    setIsDirectionOpen(false);
+                  }}
+                >
+                  {directionOptions}
+                </Select>
+              </FormGroup>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="protocol">Protocol</Label>
-              <Select 
-                value={formData.protocol} 
-                onValueChange={(value: "any" | "tcp" | "udp") => handleChange("protocol", value)}
-              >
-                <SelectTrigger id="protocol">
-                  <SelectValue placeholder="Select protocol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="any">Any</SelectItem>
-                    <SelectItem value="tcp">TCP</SelectItem>
-                    <SelectItem value="udp">UDP</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className="pf-v5-u-w-50 pf-v5-u-pr-sm">
+              <FormGroup label="Protocol" fieldId="protocol">
+                <Select
+                  id="protocol"
+                  aria-label="Select protocol"
+                  selections={formData.protocol}
+                  isOpen={isProtocolOpen}
+                  onToggle={() => setIsProtocolOpen(!isProtocolOpen)}
+                  onSelect={(_, value) => {
+                    handleChange("protocol", value as "any" | "tcp" | "udp");
+                    setIsProtocolOpen(false);
+                  }}
+                >
+                  {protocolOptions}
+                </Select>
+              </FormGroup>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="port">Port</Label>
-              <Input 
-                id="port" 
-                value={formData.port} 
-                onChange={(e) => handleChange("port", e.target.value)}
-                placeholder="e.g., 22 or leave empty for any"
-              />
+            <div className="pf-v5-u-w-50 pf-v5-u-pl-sm">
+              <FormGroup label="Port" fieldId="port">
+                <TextInput
+                  id="port"
+                  value={formData.port}
+                  onChange={(_, value) => handleChange("port", value)}
+                  placeholder="e.g., 22 or leave empty for any"
+                />
+              </FormGroup>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="from">From</Label>
-              <Input 
-                id="from" 
-                value={formData.from} 
-                onChange={(e) => handleChange("from", e.target.value)}
-                placeholder="e.g., 192.168.1.0/24 or 'any'"
-              />
+            <div className="pf-v5-u-w-50 pf-v5-u-pr-sm">
+              <FormGroup label="From" fieldId="from">
+                <TextInput
+                  id="from"
+                  value={formData.from}
+                  onChange={(_, value) => handleChange("from", value)}
+                  placeholder="e.g., 192.168.1.0/24 or 'any'"
+                />
+              </FormGroup>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="to">To</Label>
-              <Input 
-                id="to" 
-                value={formData.to} 
-                onChange={(e) => handleChange("to", e.target.value)}
-                placeholder="e.g., 192.168.1.0/24 or 'any'"
-              />
+            <div className="pf-v5-u-w-50 pf-v5-u-pl-sm">
+              <FormGroup label="To" fieldId="to">
+                <TextInput
+                  id="to"
+                  value={formData.to}
+                  onChange={(_, value) => handleChange("to", value)}
+                  placeholder="e.g., 192.168.1.0/24 or 'any'"
+                />
+              </FormGroup>
             </div>
           </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Rule"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </Form>
+      </Modal>
+    </>
   );
 };

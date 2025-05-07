@@ -1,24 +1,38 @@
 
 import { FirewallStatus } from "@/components/FirewallStatus";
 import { RulesList } from "@/components/RulesList";
+import { 
+  Page, 
+  PageSection, 
+  Title, 
+  Text, 
+  TextContent,
+  TextVariants 
+} from "@patternfly/react-core";
 
 const Index = () => {
   return (
-    <div className="container mx-auto py-6 max-w-5xl">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Firewall Manager</h1>
-        <p className="text-muted-foreground">
-          Manage your system's Uncomplicated Firewall (UFW) settings
-        </p>
-      </header>
-
-      <FirewallStatus />
-      <RulesList />
+    <Page>
+      <PageSection variant="light" className="pf-v5-u-pb-0">
+        <TextContent>
+          <Title headingLevel="h1">Firewall Manager</Title>
+          <Text component={TextVariants.p}>
+            Manage your system's Uncomplicated Firewall (UFW) settings
+          </Text>
+        </TextContent>
+      </PageSection>
       
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
-        <p>Cockpit Firewall Buddy • A Cockpit Project Plugin</p>
-      </footer>
-    </div>
+      <PageSection>
+        <FirewallStatus />
+        <RulesList />
+      </PageSection>
+      
+      <PageSection variant="light" isFilled={false}>
+        <Text component={TextVariants.small} className="pf-v5-u-text-align-center pf-v5-u-color-200">
+          Cockpit Firewall Buddy • A Cockpit Project Plugin
+        </Text>
+      </PageSection>
+    </Page>
   );
 };
 

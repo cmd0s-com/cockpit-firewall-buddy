@@ -1,11 +1,23 @@
 
 import { useState } from "react";
 import { FirewallRule, toggleFirewallRule, deleteFirewallRule } from "@/services/firewallService";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowUpRight, ArrowDownLeft, Trash2 } from "lucide-react";
+import {
+  Flex,
+  FlexItem,
+  Switch,
+  Button,
+  Label,
+  LabelGroup,
+  Modal,
+  ModalVariant,
+  Text,
+  TextVariants
+} from "@patternfly/react-core";
+import {
+  ArrowUpIcon,
+  ArrowDownIcon,
+  TrashIcon
+} from "@patternfly/react-icons";
 
 interface RuleItemProps {
   rule: FirewallRule;
@@ -14,6 +26,7 @@ interface RuleItemProps {
 
 export const RuleItem = ({ rule, onRuleChange }: RuleItemProps) => {
   const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   const handleToggle = async () => {
     setLoading(true);
@@ -32,6 +45,7 @@ export const RuleItem = ({ rule, onRuleChange }: RuleItemProps) => {
     try {
       await deleteFirewallRule(rule.id);
       onRuleChange();
+      setIsDeleteModalOpen(false);
     } catch (error) {
       console.error("Failed to delete rule:", error);
     } finally {
@@ -39,71 +53,101 @@ export const RuleItem = ({ rule, onRuleChange }: RuleItemProps) => {
     }
   };
 
+  const getLabelColor = (action: string) => {
+    switch(action) {
+      case 'allow': return 'green';
+      case 'deny': return 'red';
+      case 'reject': return 'orange';
+      default: return 'blue';
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant={rule.action === "allow" ? "default" : "destructive"} className="capitalize">
-            {rule.action}
-          </Badge>
-          <Badge variant="outline" className="flex items-center gap-1">
-            {rule.direction === "in" ? 
-              <ArrowDownLeft className="h-3 w-3" /> : 
-              <ArrowUpRight className="h-3 w-3" />
-            }
-            {rule.direction === "in" ? "Inbound" : "Outbound"}
-          </Badge>
-          <Badge variant="secondary">{rule.protocol.toUpperCase()}</Badge>
-        </div>
-        <div className="flex flex-wrap gap-x-4 text-sm">
-          <p>
-            <span className="text-muted-foreground">Port: </span>
-            <span className="font-medium">{rule.port || "any"}</span>
-          </p>
-          <p>
-            <span className="text-muted-foreground">From: </span>
-            <span className="font-medium">{rule.from}</span>
-          </p>
-          <p>
-            <span className="text-muted-foreground">To: </span>
-            <span className="font-medium">{rule.to}</span>
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 ml-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">
-            {rule.enabled ? "On" : "Off"}
-          </span>
-          <Switch 
-            checked={rule.enabled} 
-            onCheckedChange={handleToggle} 
-            disabled={loading}
-          />
-        </div>
-        
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Firewall Rule</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this firewall rule? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </div>
+    <>
+      <Flex 
+        className="pf-v5-u-p-md pf-v5-u-border-bottom pf-v5-u-border-200 pf-v5-u-background-color-hover-100-on-hover" 
+        alignItems={{ default: 'alignItemsCenter' }} 
+        justifyContent={{ default: 'justifyContentSpaceBetween' }}
+      >
+        <FlexItem grow={{ default: 'grow' }} className="pf-v5-u-min-width-0">
+          <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsSm' }}>
+            <FlexItem>
+              <LabelGroup>
+                <Label color={getLabelColor(rule.action)} className="pf-v5-u-text-transform-capitalize">
+                  {rule.action}
+                </Label>
+                <Label icon={rule.direction === "in" ? <ArrowDownIcon /> : <ArrowUpIcon />} variant="outline">
+                  {rule.direction === "in" ? "Inbound" : "Outbound"}
+                </Label>
+                <Label className="pf-v5-u-text-transform-uppercase">{rule.protocol}</Label>
+              </LabelGroup>
+            </FlexItem>
+            <FlexItem>
+              <Flex wrap={{ default: "wrap" }} spaceItems={{ default: "spaceItemsMd" }}>
+                <FlexItem>
+                  <Text component={TextVariants.small} className="pf-v5-u-color-200">Port:</Text>{" "}
+                  <Text component={TextVariants.small} className="pf-v5-u-font-weight-bold">{rule.port || "any"}</Text>
+                </FlexItem>
+                <FlexItem>
+                  <Text component={TextVariants.small} className="pf-v5-u-color-200">From:</Text>{" "}
+                  <Text component={TextVariants.small} className="pf-v5-u-font-weight-bold">{rule.from}</Text>
+                </FlexItem>
+                <FlexItem>
+                  <Text component={TextVariants.small} className="pf-v5-u-color-200">To:</Text>{" "}
+                  <Text component={TextVariants.small} className="pf-v5-u-font-weight-bold">{rule.to}</Text>
+                </FlexItem>
+              </Flex>
+            </FlexItem>
+          </Flex>
+        </FlexItem>
+        <FlexItem>
+          <Flex spaceItems={{ default: 'spaceItemsMd' }}>
+            <FlexItem>
+              <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                <FlexItem>
+                  <Text component={TextVariants.small} className="pf-v5-u-color-200 pf-v5-u-font-weight-bold">
+                    {rule.enabled ? "On" : "Off"}
+                  </Text>
+                </FlexItem>
+                <FlexItem>
+                  <Switch 
+                    isChecked={rule.enabled} 
+                    onChange={handleToggle} 
+                    isDisabled={loading}
+                    aria-label="Toggle rule"
+                  />
+                </FlexItem>
+              </Flex>
+            </FlexItem>
+            <FlexItem>
+              <Button 
+                variant="plain" 
+                isDanger
+                onClick={() => setIsDeleteModalOpen(true)}
+                icon={<TrashIcon />}
+                aria-label="Delete rule"
+              />
+            </FlexItem>
+          </Flex>
+        </FlexItem>
+      </Flex>
+
+      <Modal
+        variant={ModalVariant.small}
+        title="Delete Firewall Rule"
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        actions={[
+          <Button key="cancel" variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            Cancel
+          </Button>,
+          <Button key="delete" variant="danger" onClick={handleDelete} isLoading={loading}>
+            Delete
+          </Button>
+        ]}
+      >
+        Are you sure you want to delete this firewall rule? This action cannot be undone.
+      </Modal>
+    </>
   );
 };
