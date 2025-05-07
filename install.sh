@@ -7,9 +7,18 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+# Install required dependencies if needed
+echo "Checking for required dependencies..."
+if ! command -v npm &> /dev/null; then
+  echo "Installing Node.js and npm..."
+  apt-get update
+  apt-get install -y nodejs npm
+fi
+
 # Build the application with correct environment variables
 echo "Building application..."
-VITE_COCKPIT_BASE_PATH=/cockpit npm run build:cockpit
+export VITE_COCKPIT_BASE_PATH=/cockpit 
+npm run build:cockpit
 
 # Create plugin directory
 PLUGIN_DIR="/usr/share/cockpit/firewall"
@@ -23,7 +32,11 @@ cp manifest.json $PLUGIN_DIR/
 cp cockpit-package.json $PLUGIN_DIR/package.json
 
 echo "Restarting Cockpit service..."
-systemctl restart cockpit
+if systemctl is-active --quiet cockpit.service; then
+  systemctl restart cockpit.service
+else
+  systemctl restart cockpit.socket
+fi
 
 echo "Plugin installation complete! Access it through Cockpit interface."
 echo "If Cockpit is not installed, run: sudo apt install cockpit"

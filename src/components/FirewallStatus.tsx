@@ -14,7 +14,7 @@ import {
   Text,
   TextVariants
 } from "@patternfly/react-core";
-import { ShieldIcon, ShieldAltIcon, SyncAltIcon } from "@patternfly/react-icons";
+import { ShieldAltIcon, SyncAltIcon } from "@patternfly/react-icons";
 
 export const FirewallStatus = () => {
   const [status, setStatus] = useState<boolean | null>(null);
@@ -56,7 +56,7 @@ export const FirewallStatus = () => {
         <Flex alignItems={{ default: 'alignItemsCenter' }}>
           <FlexItem>
             {status ? (
-              <ShieldIcon color="var(--pf-v5-global--success-color--100)" />
+              <ShieldAltIcon color="var(--pf-v5-global--success-color--100)" />
             ) : (
               <ShieldAltIcon color="var(--pf-v5-global--danger-color--100)" />
             )}

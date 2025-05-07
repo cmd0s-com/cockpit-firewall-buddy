@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import "@patternfly/react-core/dist/styles/base.css";
+// CSS will be loaded in main.tsx
 
 // Get base URL from Cockpit
 const getBasePath = () => {
