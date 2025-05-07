@@ -1,0 +1,16 @@
+
+{
+    "version": 0,
+    "requires": {
+        "cockpit": "122"
+    },
+    "name": "firewall",
+    "description": "UFW Firewall Manager for Cockpit",
+    "menu": {
+        "index": {
+            "label": "Firewall",
+            "order": 110,
+            "icon": "shield"
+        }
+    }
+}

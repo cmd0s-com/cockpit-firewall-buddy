@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -36,19 +37,36 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Installing as a Cockpit Plugin on Ubuntu 24.04
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To install this plugin into Cockpit:
 
-**Use GitHub Codespaces**
+1. Make sure Cockpit is installed on your Ubuntu system:
+   ```
+   sudo apt update
+   sudo apt install cockpit
+   sudo systemctl enable --now cockpit.socket
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Clone this repository and navigate to the project directory
+   ```
+   git clone <YOUR_GIT_URL>
+   cd <YOUR_PROJECT_DIRECTORY>
+   ```
+
+3. Install project dependencies:
+   ```
+   npm install
+   ```
+
+4. Run the installation script as root:
+   ```
+   sudo ./install.sh
+   ```
+
+5. Access Cockpit at https://your-server-ip:9090 or https://localhost:9090
+
+6. Login with your system credentials and you should see the "Firewall" option in the menu
 
 ## What technologies are used for this project?
 
