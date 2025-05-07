@@ -7,9 +7,9 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Build the application
+# Build the application with correct environment variables
 echo "Building application..."
-npm run build
+VITE_COCKPIT_BASE_PATH=/cockpit npm run build:cockpit
 
 # Create plugin directory
 PLUGIN_DIR="/usr/share/cockpit/firewall"

@@ -30,5 +30,8 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  base: './'
+  base: './',
+  define: {
+    'process.env.BASE_URL': JSON.stringify('./')
+  }
 }));

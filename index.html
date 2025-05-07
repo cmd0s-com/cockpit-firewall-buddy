@@ -7,6 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cockpit Firewall Manager</title>
     <script src="%VITE_COCKPIT_BASE_PATH%/base1/cockpit.js"></script>
+    <script>
+      /* Set up VITE_COCKPIT_BASE_PATH for development */
+      if (!window.location.pathname.includes("/cockpit/")) {
+        window.VITE_COCKPIT_BASE_PATH = "";
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
