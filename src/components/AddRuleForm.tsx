@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { addFirewallRule } from "@/services/firewallService";
+import { addFirewallRule, FirewallRule } from "@/services/firewallService";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ interface AddRuleFormProps {
 export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<FirewallRule, "id">>({
     action: "allow",
     direction: "in",
     protocol: "tcp",
@@ -25,8 +25,11 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
     enabled: true,
   });
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof Omit<FirewallRule, "id">, value: string) => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      [field]: value 
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +79,7 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
               <Label htmlFor="action">Action</Label>
               <Select 
                 value={formData.action} 
-                onValueChange={(value) => handleChange("action", value)}
+                onValueChange={(value: "allow" | "deny" | "reject") => handleChange("action", value)}
               >
                 <SelectTrigger id="action">
                   <SelectValue placeholder="Select action" />
@@ -95,7 +98,7 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
               <Label htmlFor="direction">Direction</Label>
               <Select 
                 value={formData.direction} 
-                onValueChange={(value) => handleChange("direction", value)}
+                onValueChange={(value: "in" | "out") => handleChange("direction", value)}
               >
                 <SelectTrigger id="direction">
                   <SelectValue placeholder="Select direction" />
@@ -113,7 +116,7 @@ export const AddRuleForm = ({ onRuleAdded }: AddRuleFormProps) => {
               <Label htmlFor="protocol">Protocol</Label>
               <Select 
                 value={formData.protocol} 
-                onValueChange={(value) => handleChange("protocol", value)}
+                onValueChange={(value: "any" | "tcp" | "udp") => handleChange("protocol", value)}
               >
                 <SelectTrigger id="protocol">
                   <SelectValue placeholder="Select protocol" />
